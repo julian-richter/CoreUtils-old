@@ -3,32 +3,36 @@
 namespace CoreUtils {
 
     // Static member definitions
-    std::unique_ptr<SystemInfo> CoreUtils::s_system_info = nullptr;
-    bool CoreUtils::s_initialized = false;
+    std::unique_ptr<SystemInfo> Utils::s_system_info = nullptr;
+    bool Utils::s_initialized = false;
+    std::mutex Utils::s_mutex;
 
-    SystemInfo& CoreUtils::getSystemInfo() {
+    SystemInfo& Utils::getSystemInfo() {
+        std::lock_guard<std::mutex> lock(s_mutex);
         if (!s_system_info) {
             s_system_info = std::make_unique<SystemInfo>();
         }
         return *s_system_info;
     }
 
-    const char* CoreUtils::getVersion() {
+    const char* Utils::getVersion() {
         return VERSION;
     }
 
-    const char* CoreUtils::getBuildDate() {
+    const char* Utils::getBuildDate() {
         return BUILD_DATE;
     }
 
-    void CoreUtils::initialize() {
+    void Utils::initialize() {
+        std::lock_guard<std::mutex> lock(s_mutex);
         if (!s_initialized) {
             // Future initialization code can go here
             s_initialized = true;
         }
     }
 
-    void CoreUtils::cleanup() {
+    void Utils::cleanup() {
+        std::lock_guard<std::mutex> lock(s_mutex);
         if (s_initialized) {
             s_system_info.reset();
             s_initialized = false;
@@ -39,31 +43,31 @@ namespace CoreUtils {
     namespace System {
 
         std::string getHostname() {
-            return CoreUtils::getSystemInfo().getHostname();
+            return Utils::getSystemInfo().getHostname();
         }
 
         std::string getKernelVersion() {
-            return CoreUtils::getSystemInfo().getKernelVersion();
+            return Utils::getSystemInfo().getKernelVersion();
         }
 
         std::string getDistribution() {
-            return CoreUtils::getSystemInfo().getDistribution();
+            return Utils::getSystemInfo().getDistribution();
         }
 
         long getUptime() {
-            return CoreUtils::getSystemInfo().getUptime();
+            return Utils::getSystemInfo().getUptime();
         }
 
         int getCpuCount() {
-            return CoreUtils::getSystemInfo().getCpuCount();
+            return Utils::getSystemInfo().getCpuCount();
         }
 
         LoadAverage getLoadAverage() {
-            return CoreUtils::getSystemInfo().getLoadAverage();
+            return Utils::getSystemInfo().getLoadAverage();
         }
 
         CpuInfo getCpuInfo() {
-            return CoreUtils::getSystemInfo().getCpuInfo();
+            return Utils::getSystemInfo().getCpuInfo();
         }
     }
 
